@@ -5,10 +5,15 @@ import os
 import sklearn.model_selection
 import sklearn.linear_model
 
-from webscrape import nfl_web_scrape
+import webscrape
+
 
 def main():
-    nfl_web_scrape()
+    url = "https://www.pro-football-reference.com/teams/cin/2019_lines.htm"
+    df = webscrape.create_initial_df(url)
+    webscrape.get_team_df(year_start=2000, df=df)
+    # print(df.columns)
+    print(df)
 
 
     # aapl_dir = "C:/Users/forre/OneDrive/Documents/Datasets/Stocks/AAPL.csv"
