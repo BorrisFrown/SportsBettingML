@@ -10,9 +10,9 @@ from webscrape import NflScraper
 
 def main():
     url = "https://www.pro-football-reference.com/teams/cin/2019_lines.htm"
-    scraper = NflScraper(team='cin')
-    scraper.set_team_df(2020)
-    print(scraper.df)
+    scraper = NflScraper(team='cin', start_year=2021)
+    # print(scraper.bet_df)
+    print(scraper.stat_df)
 
     # aapl_dir = "C:/Users/forre/OneDrive/Documents/Datasets/Stocks/AAPL.csv"
     # df = pd.read_csv(aapl_dir)

@@ -30,7 +30,7 @@ def _get_table(url: str, df, year) -> pd.DataFrame:
     return df
 
 
-def _get_team_df(year_start: int, df) -> pd.DataFrame:
+def _get_team_bet_df(year_start: int, df) -> pd.DataFrame:
     bengals_url_root = f"https://www.pro-football-reference.com/teams/cin/"
     url = f"{bengals_url_root}{year_start}_lines.htm"
     if year_start == get_this_football_season():
@@ -42,7 +42,7 @@ def _get_team_df(year_start: int, df) -> pd.DataFrame:
                          f"1966. This will lead to unhelpful data.")
     else:
         _get_table(url, df, year_start)
-        return _get_team_df(year_start + 1, df)
+        return _get_team_bet_df(year_start + 1, df)
 
 
 def get_this_football_season() -> int:
@@ -63,32 +63,65 @@ class NflScraper:
             team (str): A small string correlating with what is accepted by pro-football-reference url.
             this_year(int): Takes the result of get_this_football_season() [NOT ALWAYS THIS CALENDAR YEAR].
             root_url(str): The root pro-football-reference url.
-            df (pd.DataFrame): The resulting dataframe from the scrape.
+            bet_df (pd.DataFrame): The resulting dataframe from the scrape.
 
         Methods:
             TODO: We'll fill this in when the scraper is a bit more complete.
 
     """
-    def __init__(self, team: str = 'cin'):
+    def __init__(self, team: str = 'cin', start_year: int = 1990):
         self.team = team
+        self.start_year = start_year
+        self.bet_df = None
+        self.stat_df = None
 
         self.this_year = get_this_football_season()
         self.root_url = "https://www.pro-football-reference.com/teams/"
         # TODO: Perhaps I don't need to hardcode this url
 
-        self.df = self._initialize_df()  # This will initial
+        self.bet_df = self._initialize_df('bets')
+        self.stat_df = self._initialize_df('stats')
+        self._set_team_bet_df()
+        # self._set_team_stat_df()
 
-    def _initialize_df(self):
-        url = f'{self.root_url}cin/{self.this_year}_lines.htm'
+    def _initialize_df(self, type_of_data: str) -> pd.DataFrame:
+        """Initializes an empty DataFrame with web-scraped columns.
+
+            Arg:
+                type_of_data (str): The string indicating the type of data you want.
+
+            Returns:
+                df (pd.DataFrame): Empty dataframe with scraped columns.
+        """
+        allowed_data = ['bets', 'stats']
+        if type_of_data not in allowed_data:
+            raise ValueError(f'Trying to get a dataframe for {type_of_data}, must be one of {allowed_data}.')
+        if type_of_data == 'bets':
+            suffix = '_lines.htm'
+            # TODO: Hardcode the .htm so I don't need the redundant suffix
+            table_id = 'vegas_lines'
+        elif type_of_data == 'stats':
+            suffix = '.htm'
+            table_id = 'games'
+        else:
+            raise NotImplementedError(f'NFLScraper cannot yet handle {type_of_data} data. \n'
+                                      f'Remove it from "allowed_data" or implement how to handle it.')
+        # TODO: Put ^this^ chunk of logic in its own function
+
+        url = f'{self.root_url}cin/{self.this_year}{suffix}'
         # TODO: Temporary hardcoded as bengals, make this dynamic
         page = requests.get(url)
         soup = bs4.BeautifulSoup(page.content, 'html.parser')
-        bet_table = soup.find(id='vegas_lines')
+        bet_table = soup.find(id=table_id)
         bet_columns = bet_table.find('thead').text.strip()
         col_names = list(bet_columns.split('\n'))
         col_names.insert(1, 'Year')
         df = pd.DataFrame(columns=col_names)
         return df
 
-    def set_team_df(self, start_year: int = 2000):
-        self.df = _get_team_df(start_year, self.df)
+    def _set_team_bet_df(self):
+        self.bet_df = _get_team_bet_df(self.start_year, self.bet_df)
+
+    def _set_team_stat_df(self):
+        # TODO: Implement
+        raise NotImplementedError
