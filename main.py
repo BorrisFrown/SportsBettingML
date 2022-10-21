@@ -9,10 +9,21 @@ from webscrape import NflScraper
 
 
 def main():
+    bet_dict = {'data': 'bets',
+                'url_suffix': '_lines.htm',
+                'table_id': 'vegas_lines'}
+
+    stat_dict = {'data': 'stats',
+                 'url_suffix': '.htm',
+                 'table_id': 'games'}
+
+    # TODO: Put these guys somewhere cleaner
+
     url = "https://www.pro-football-reference.com/teams/cin/2019_lines.htm"
-    scraper = NflScraper(team='cin', start_year=2021)
-    # print(scraper.bet_df)
-    print(scraper.stat_df)
+    bet_scraper = NflScraper(value_dict=bet_dict, team='cin', start_year=2021)
+    stat_scraper = NflScraper(value_dict=stat_dict, team='cin', start_year=2021)
+
+    print(bet_scraper.df)
 
     # aapl_dir = "C:/Users/forre/OneDrive/Documents/Datasets/Stocks/AAPL.csv"
     # df = pd.read_csv(aapl_dir)
