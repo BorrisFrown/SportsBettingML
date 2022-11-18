@@ -79,16 +79,18 @@ class NflScraper:
         bet_columns = bet_table.find('thead')#.text.strip()
         bet_columns = bet_columns.find_all('tr')[-1].text.strip()
         col_names = list(bet_columns.split('\n'))
+
         if self.value_dict['data'] == 'stats':
             col_names[3] = 'Time'
             col_names[4] = 'Boxscore'
             col_names[5] = 'Result'
             col_names[8] = 'Away'
-            # col_names.insert(3, 'Time')
-            # col_names.insert(4, 'Boxscore')
-            # # TODO: Boxscore is a placeholder, this whole column and data needs to be deleted
-            # col_names.insert(5, 'Result')
-            # col_names.insert(8, 'Away')
+            col_names[9] = f'{col_names[9]}_name'
+            for i in range(12, 17):
+                col_names[i] = f'{col_names[i]}_o'
+            for i in range(17, 22):
+                col_names[i] = f'{col_names[i]}_d'
+            # TODO: Boxscore is a placeholder, this whole column and data needs to be deleted
         col_names.insert(0, 'Year')
         col_names = list(filter(lambda a: a != '', col_names))
         # TODO: Fix this
