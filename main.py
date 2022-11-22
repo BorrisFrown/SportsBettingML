@@ -14,7 +14,6 @@ def get_average_row(ave_data: list, row: list):
     new_ave = [week]
     start_idx = 1
     for idx, data in enumerate(row[start_idx:], start=start_idx):
-        # TODO: Add start=1 kwarg to enumerate
         ave_point = (data + ave_data[idx] * (week - 1)) / week
         new_ave.append(ave_point)
     return new_ave
@@ -49,7 +48,7 @@ def row_to_int(df, index):
 
 def formatted(df: pd.DataFrame) -> list[list]:
     last_year = 0
-    data = []
+    average_data = []
     formatted_data = []
     for index in df.index:
         year = df['Year'][index]
@@ -65,8 +64,8 @@ def formatted(df: pd.DataFrame) -> list[list]:
                 formatted_data.append(average_data)
             # TODO: (CRUCIAL) ignore bye weeks and fix playoff divide by 0 error
             # TODO: Maybe add day, time, record, away
+    return formatted_data
 
-        last_year = year
 #     TODO: Because there's so many functions, this may be able to be moved to another file or a method of webscrape
 # TODO: I will either have to find a way to do deep learning, or go back to the original averaging idea
 #
@@ -99,7 +98,8 @@ def main():
     stat_scraper = NflScraper(value_dict=stat_dict, team='cin', start_year=2021)
 
     # print(stat_scraper.df.columns)
-    formatted(stat_scraper.df)
+    raw_data = formatted(stat_scraper.df)
+    pass
 
     # get_week_averages(stat_scraper.df, 1)
 
