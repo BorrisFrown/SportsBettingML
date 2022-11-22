@@ -13,8 +13,9 @@ def get_average_row(ave_data: list, row: list):
     week = row[0]
     new_ave = [week]
     start_idx = 1
-    for idx, data in enumerate(row[start_idx:]):
-        ave_point = (data + ave_data[idx + start_idx] * (week - 1)) / week
+    for idx, data in enumerate(row[start_idx:], start=start_idx):
+        # TODO: Add start=1 kwarg to enumerate
+        ave_point = (data + ave_data[idx] * (week - 1)) / week
         new_ave.append(ave_point)
     return new_ave
 
@@ -26,9 +27,24 @@ def row_to_int(df, index):
             return 0
         else:
             return int(x)
-    formatted_row = map(to_int, [df['Week'][index], df['Tm'][index], df['Opp'][index], df['1stD_o'][index], df['TotYd_o'][index],
-                            df['PassY_o'][index], df['RushY_o'][index], df['TO_o'][index]])
-    return list(formatted_row)
+    try:
+        formatted_row = map(to_int, [df['Week'][index], df['Tm'][index], df['Opp'][index], df['1stD_o'][index], df['TotYd_o'][index],
+                                df['PassY_o'][index], df['RushY_o'][index], df['TO_o'][index]])
+        return list(formatted_row)
+    except ValueError:
+        playoff_dict = {'Wild Card': 1,
+                        'Division': 2,
+                        'Conf. Champ.': 3,
+                        'SuperBowl': 4}
+        # TODO: If results are fucky for playoff games, instead of doing week number,
+        #  find a way to feed a model a string or something
+        week_str = df['Week'][index]
+        week_num = int(df['Week'][index - (1 + playoff_dict[week_str])]) + playoff_dict[week_str]
+        data_row = map(to_int, [df['Tm'][index], df['Opp'][index], df['1stD_o'][index],
+                                     df['TotYd_o'][index], df['PassY_o'][index], df['RushY_o'][index], df['TO_o'][index]])
+        formatted_row = [week_num] + list(data_row)
+        return formatted_row
+#         TODO: Translate this to index - 1 or whatever it is
 
 
 def formatted(df: pd.DataFrame) -> list[list]:
@@ -44,14 +60,13 @@ def formatted(df: pd.DataFrame) -> list[list]:
         # TODO: This is where it gets tough, I will have to get stats for every team and average them for the defense.
 
         else:
-            average_data = get_average_row(average_data, row_to_int(df, index))
-            formatted_data.append(average_data)
+            if df['Opp_name'][index] != 'Bye Week' and df['Opp_name'][index] != ' ':
+                average_data = get_average_row(average_data, row_to_int(df, index))
+                formatted_data.append(average_data)
             # TODO: (CRUCIAL) ignore bye weeks and fix playoff divide by 0 error
             # TODO: Maybe add day, time, record, away
 
         last_year = year
-
-    print(formatted_data)
 #     TODO: Because there's so many functions, this may be able to be moved to another file or a method of webscrape
 # TODO: I will either have to find a way to do deep learning, or go back to the original averaging idea
 #
@@ -81,7 +96,7 @@ def main():
 
     url = "https://www.pro-football-reference.com/teams/cin/2019_lines.htm"
     bet_scraper = NflScraper(value_dict=bet_dict, team='cin', start_year=2020)
-    stat_scraper = NflScraper(value_dict=stat_dict, team='cin', start_year=2020)
+    stat_scraper = NflScraper(value_dict=stat_dict, team='cin', start_year=2021)
 
     # print(stat_scraper.df.columns)
     formatted(stat_scraper.df)
