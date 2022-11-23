@@ -21,6 +21,7 @@ def get_average_row(ave_data: list, row: list):
 
 def row_to_int(df, index):
     """ Takes a df and an index, and returns the row of the given index with the contents having been mapped to int"""
+    # TODO: Make this cleaner by passing column_list
     def to_int(x: str):
         if x == ' ' or x == '':
             return 0
@@ -46,25 +47,24 @@ def row_to_int(df, index):
 #         TODO: Translate this to index - 1 or whatever it is
 
 
-def formatted(df: pd.DataFrame) -> list[list]:
+def formatted(df: pd.DataFrame) -> pd.DataFrame:
     last_year = 0
     average_data = []
-    formatted_data = []
+    column_list = ['Week', 'Tm', 'Opp', '1stD_o', 'TotYd_o', 'PassY_o', 'RushY_o', 'TO_o']
+    formatted_df = pd.DataFrame(columns=column_list)
     for index in df.index:
         year = df['Year'][index]
-
         if df['Week'][index] == '1':
             average_data = row_to_int(df, index)
-            formatted_data.append(list(average_data))
+            formatted_df.loc[len(formatted_df)] = average_data
         # TODO: This is where it gets tough, I will have to get stats for every team and average them for the defense.
 
         else:
             if df['Opp_name'][index] != 'Bye Week' and df['Opp_name'][index] != ' ':
                 average_data = get_average_row(average_data, row_to_int(df, index))
-                formatted_data.append(average_data)
-            # TODO: (CRUCIAL) ignore bye weeks and fix playoff divide by 0 error
+                formatted_df.loc[len(formatted_df)] = average_data
             # TODO: Maybe add day, time, record, away
-    return formatted_data
+    return formatted_df
 
 #     TODO: Because there's so many functions, this may be able to be moved to another file or a method of webscrape
 # TODO: I will either have to find a way to do deep learning, or go back to the original averaging idea
@@ -98,7 +98,7 @@ def main():
     stat_scraper = NflScraper(value_dict=stat_dict, team='cin', start_year=2021)
 
     # print(stat_scraper.df.columns)
-    raw_data = formatted(stat_scraper.df)
+    ave_data = formatted(stat_scraper.df)
     pass
 
     # get_week_averages(stat_scraper.df, 1)
