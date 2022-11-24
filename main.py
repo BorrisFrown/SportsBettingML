@@ -9,7 +9,6 @@ from webscrape import NflScraper
 
 
 def get_average_row(ave_data: list, row: list):
-    # TODO: This could probably do all the row to int stuff as well
     week = row[0]
     new_ave = [week]
     start_idx = 1
@@ -27,10 +26,15 @@ def row_to_int(df, index):
             return 0
         else:
             return int(x)
+
     try:
-        formatted_row = map(to_int, [df['Week'][index], df['Tm'][index], df['Opp'][index], df['1stD_o'][index], df['TotYd_o'][index],
-                                df['PassY_o'][index], df['RushY_o'][index], df['TO_o'][index]])
+        # TODO: Use df.loc first to clean up the mess
+        formatted_row = map(to_int, [df['Week'][index], df['Tm'][index],
+                                     df['Opp'][index], df['1stD_o'][index],
+                                     df['TotYd_o'][index], df['PassY_o'][index],
+                                     df['RushY_o'][index], df['TO_o'][index]])
         return list(formatted_row)
+
     except ValueError:
         playoff_dict = {'Wild Card': 1,
                         'Division': 2,
@@ -40,8 +44,8 @@ def row_to_int(df, index):
         #  find a way to feed a model a string or something
         week_str = df['Week'][index]
         week_num = int(df['Week'][index - (1 + playoff_dict[week_str])]) + playoff_dict[week_str]
-        data_row = map(to_int, [df['Tm'][index], df['Opp'][index], df['1stD_o'][index],
-                                     df['TotYd_o'][index], df['PassY_o'][index], df['RushY_o'][index], df['TO_o'][index]])
+        data_row = map(to_int, [df['Tm'][index], df['Opp'][index], df['1stD_o'][index], df['TotYd_o'][index],
+                                df['PassY_o'][index], df['RushY_o'][index], df['TO_o'][index]])
         formatted_row = [week_num] + list(data_row)
         return formatted_row
 #         TODO: Translate this to index - 1 or whatever it is
@@ -67,8 +71,6 @@ def formatted(df: pd.DataFrame) -> pd.DataFrame:
     return formatted_df
 
 #     TODO: Because there's so many functions, this may be able to be moved to another file or a method of webscrape
-# TODO: I will either have to find a way to do deep learning, or go back to the original averaging idea
-#
 
 # def get_target():
 # def get_week_averages(df: pd.DataFrame) -> pd.DataFrame:
@@ -91,14 +93,14 @@ def main():
                  'url_suffix': '.htm',
                  'table_id': 'games'}
 
-    # TODO: Put these guys somewhere cleaner
+    file_path = os.path.dirname(os.path.realpath(__file__))
+    bet_path = os.path.join(file_path, 'test_bets.csv')
+    stat_path = os.path.join(file_path, 'test_stats.csv')
 
-    url = "https://www.pro-football-reference.com/teams/cin/2019_lines.htm"
-    bet_scraper = NflScraper(value_dict=bet_dict, team='cin', start_year=2020)
+    # bet_scraper = NflScraper(value_dict=bet_dict, out_path=bet_path, team='cin', start_year=2020)
     stat_scraper = NflScraper(value_dict=stat_dict, team='cin', start_year=2021)
-
-    # print(stat_scraper.df.columns)
-    ave_data = formatted(stat_scraper.df)
+    stat_scraper.write_to_csv(stat_path)
+    # ave_data = formatted(stat_scraper.df)
     pass
 
     # get_week_averages(stat_scraper.df, 1)

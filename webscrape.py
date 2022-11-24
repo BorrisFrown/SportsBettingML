@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 import bs4
+import os
 
 from datetime import date
 
@@ -62,11 +63,24 @@ class NflScraper:
     #     TODO: Instead of doing very similar but different functions, these should maybe be different instances of
     #      the web scraper class.
 
+    def write_to_csv(self, path: str):
+        if os.path.exists(path):
+            ow = input(f'There is already data at {path}, would you like to continue and overwrite existing data?\n'
+                       f'(Type "y" for yes and "n" for no.)')
+            if ow == 'n':
+                print(f'You have selected not to overwrite the existing csv.\n'
+                      f'Cancelling overwrite...')
+                return
+            elif ow != 'y':
+                print(f'Overwriting file at {path}...')
+                self.df.to_csv(path)
+        else:
+            print(f'Writing to {path}...')
+            self.df.to_csv(path)
+
+
     def _initialize_df(self) -> pd.DataFrame:
         """Initializes an empty DataFrame with web-scraped columns.
-
-            Arg:
-                type_of_data (str): The string indicating the type of data you want.
 
             Returns:
                 df (pd.DataFrame): Empty dataframe with scraped columns.
@@ -76,7 +90,7 @@ class NflScraper:
         page = requests.get(url)
         soup = bs4.BeautifulSoup(page.content, 'html.parser')
         bet_table = soup.find(id=self.value_dict['table_id'])
-        bet_columns = bet_table.find('thead')#.text.strip()
+        bet_columns = bet_table.find('thead')
         bet_columns = bet_columns.find_all('tr')[-1].text.strip()
         col_names = list(bet_columns.split('\n'))
 
