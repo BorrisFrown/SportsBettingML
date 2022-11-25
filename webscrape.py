@@ -66,7 +66,7 @@ class NflScraper:
     def write_to_csv(self, path: str):
         if os.path.exists(path):
             ow = input(f'There is already data at {path}, would you like to continue and overwrite existing data?\n'
-                       f'(Type "y" for yes and "n" for no.)')
+                       f'(Type "y" for yes and "n" for no.): ')
             if ow == 'n':
                 print(f'You have selected not to overwrite the existing csv.\n'
                       f'Cancelling overwrite...')
