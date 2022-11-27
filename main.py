@@ -132,7 +132,7 @@ def main():
     stat_path = os.path.join(file_path, 'test_stats.csv')
 
     # bet_scraper = NflScraper(value_dict=bet_dict, out_path=bet_path, team='cin', start_year=2020)
-    stat_scraper = NflScraper(value_dict=stat_dict, team='cin', start_year=2021)
+    stat_scraper = NflScraper(value_dict=stat_dict, directory=stat_path, team='cin', read_data=False, start_year=2020)
     stat_scraper.write_to_csv(stat_path)
     # ave_data = formatted(stat_scraper.df)
     pass

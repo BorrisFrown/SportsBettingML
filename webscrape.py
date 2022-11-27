@@ -48,18 +48,23 @@ class NflScraper:
     """
     this_year = get_this_football_season()
 
-    def __init__(self, value_dict: dict[str, str], team: str = 'cin', start_year: int = 1990):
+    def __init__(self,
+                 value_dict: dict[str, str],
+                 directory: str,
+                 team: str = 'cin',
+                 read_data: bool = False,
+                 start_year: int = 2002):
         self.value_dict = value_dict
         # TODO: There has got to be a better way to handle the dict, perhaps an init function to
         #  set self.value_dict based on the type of scraper
+        self.directory = directory
         self.team = team
+        self.read_data = read_data
         self.start_year = start_year
 
         self.root_url = "https://www.pro-football-reference.com/teams/"
         # TODO: Perhaps I don't need to hardcode this url
-        self.df = self._initialize_df()
-
-        self._get_team_df(self.start_year)
+        self._get_team_df()
     #     TODO: Instead of doing very similar but different functions, these should maybe be different instances of
     #      the web scraper class.
 
@@ -71,13 +76,15 @@ class NflScraper:
                 print(f'You have selected not to overwrite the existing csv.\n'
                       f'Cancelling overwrite...')
                 return
-            elif ow != 'y':
+            elif ow == 'y':
                 print(f'Overwriting file at {path}...')
                 self.df.to_csv(path)
+            else:
+                print(f'Incorrect input: {ow}. Please try again.\n')
+                self.write_to_csv(path)
         else:
             print(f'Writing to {path}...')
             self.df.to_csv(path)
-
 
     def _initialize_df(self) -> pd.DataFrame:
         """Initializes an empty DataFrame with web-scraped columns.
@@ -107,13 +114,20 @@ class NflScraper:
             # TODO: Boxscore is a placeholder, this whole column and data needs to be deleted
         col_names.insert(0, 'Year')
         col_names = list(filter(lambda a: a != '', col_names))
-        # TODO: Fix this
         df = pd.DataFrame(columns=col_names)
         return df
 
-    def _get_team_df(self, year_start):
-        # TODO: docstring mention recursion
+    def _get_team_df(self):
+        if self.read_data:
+            self.df = pd.read_csv(self.directory)
+        #     TODO: Only read from start_year
+        else:
+            self.df = self._initialize_df()
+            self._scrape_team_df(self.start_year)
 
+    def _scrape_team_df(self, year_start):
+        # TODO: Make year_start iterate the instance attribute
+        # TODO: docstring mention the recursion
         bengals_url_root = f"{self.root_url}cin/"
         # TODO: Make the team an instance attribute
         url = f"{bengals_url_root}{year_start}{self.value_dict['url_suffix']}"
@@ -123,13 +137,13 @@ class NflScraper:
         elif year_start > get_this_football_season():
             raise IndexError(
                 f"Trying to get a dataframe for a football season that has not yet happened ({year_start})")
-        elif year_start < 1966:
+        elif year_start < 2002:
             raise IndexError(
-                f"Trying to get a dataframe for the {year_start} football season, the first superbowl was in "
-                f"1966. This will lead to unhelpful data.")
+                f"Trying to get a dataframe for the {year_start} football season, the Houston Texans didn't exist"
+                f"until 2002, this will lead to training on inactive franchises.")
         else:
             self._get_table(url, year_start)
-            self._get_team_df(year_start + 1)
+            self._scrape_team_df(year_start + 1)
 
     def _get_table(self, url: str, year: int):
         # TODO: Although it's nice and clean now, it may make more sense to pass the team and year instead of URL so that
