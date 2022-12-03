@@ -1,7 +1,11 @@
 import requests
+from requests_html import HTMLSession
+from loading_animation import Animation
 import pandas as pd
 import bs4
 import os
+import time
+# TODO: Make imports look nice.
 
 from datetime import date
 
@@ -63,7 +67,16 @@ class NflScraper:
         self.start_year = start_year
 
         self.root_url = "https://www.pro-football-reference.com/teams/"
-        # TODO: Perhaps I don't need to hardcode this url
+        self.header = {
+                        "user-agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36",
+                        "accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,/;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                        "accept-encoding" : "gzip, deflate, br",
+                        "accept-language" : "en-GB,en;q=0.9,en-US;q=0.8,de;q=0.7",
+                        "cache-control"   : "no-cache",
+                        "pragma" : "no-cache",
+                        "upgrade-insecure-requests" : "1"
+                        }
+        # TODO: Put this stuff in constants.py
         self._get_team_df()
     #     TODO: Instead of doing very similar but different functions, these should maybe be different instances of
     #      the web scraper class.
@@ -77,14 +90,14 @@ class NflScraper:
                       f'Cancelling overwrite...')
                 return
             elif ow == 'y':
-                print(f'Overwriting file at {path}...')
-                self.df.to_csv(path)
+                print(f'Overwriting file at {path}')
+                self.df.to_csv(path, index=False)
             else:
                 print(f'Incorrect input: {ow}. Please try again.\n')
                 self.write_to_csv(path)
         else:
             print(f'Writing to {path}...')
-            self.df.to_csv(path)
+            self.df.to_csv(path, index=False)
 
     def _initialize_df(self) -> pd.DataFrame:
         """Initializes an empty DataFrame with web-scraped columns.
@@ -94,7 +107,9 @@ class NflScraper:
         """
         url = f"{self.root_url}cin/{NflScraper.this_year}{self.value_dict['url_suffix']}"
         # TODO: Temporary hardcoded as bengals, make this dynamic
-        page = requests.get(url)
+        # req = requests.Session()
+        req = HTMLSession()
+        page = req.get(url, headers=self.header)
         soup = bs4.BeautifulSoup(page.content, 'html.parser')
         bet_table = soup.find(id=self.value_dict['table_id'])
         bet_columns = bet_table.find('thead')
@@ -122,10 +137,15 @@ class NflScraper:
             self.df = pd.read_csv(self.directory)
         #     TODO: Only read from start_year
         else:
+            print('Scraping data')
+            ani = Animation()
+            ani.start()
             self.df = self._initialize_df()
             self._scrape_team_df(self.start_year)
+            ani.stop()
 
     def _scrape_team_df(self, year_start):
+        time.sleep(5)
         # TODO: Make year_start iterate the instance attribute
         # TODO: docstring mention the recursion
         bengals_url_root = f"{self.root_url}cin/"
@@ -148,7 +168,9 @@ class NflScraper:
     def _get_table(self, url: str, year: int):
         # TODO: Although it's nice and clean now, it may make more sense to pass the team and year instead of URL so that
         #  the team and year can be on the dataframe as well.
-        page = requests.get(url)
+        # req = requests.Session()
+        req = HTMLSession()
+        page = req.get(url, headers=self.header)
         soup = bs4.BeautifulSoup(page.content, 'html.parser')
         bet_table = soup.find(id=self.value_dict['table_id'])
 
