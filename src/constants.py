@@ -38,3 +38,5 @@ team_dict = {'crd': ['Arizona Cardinals'],
              'tam': ['Tampa Bay Buccaneers'],
              'oti': ['Tennessee Titans'],
              'was': ['Washington Redskins', 'Washington Commanders']}
+
+base_football_url = "https://www.pro-football-reference.com/teams/"

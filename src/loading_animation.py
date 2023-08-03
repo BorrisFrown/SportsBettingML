@@ -30,6 +30,7 @@ class Animation:
 
 
 def test_animation():
+    """Function to test the animation. Will run animation for 5 seconds."""
     ani = Animation()
     ani.start()
     time.sleep(5)
